@@ -51,7 +51,6 @@ private:
     uint11 pc;        //program counter
     uint11 stack[4];  //LIFO
     uint10 rp;        //ROM pointer
-    uint16 ro;        //ROM output buffer
     uint8  dp;        //data pointer
     uint16 k;
     uint16 l;
@@ -63,7 +62,6 @@ private:
     Flag  flagb;
     uint16 tr;        //temporary registers
     uint16 trb;
-    uint16 sgn;       //sign register
     Status sr;        //status register
     uint16 dr;        //data register
     bool siack;

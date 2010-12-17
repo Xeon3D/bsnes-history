@@ -27,11 +27,9 @@ void UPD77C25::enter() {
       case 3: exec_ld(opcode); break;
     }
 
-    uint32 result = regs.k * regs.l;  //sign + 30-bit result
+    uint31 result = regs.k * regs.l;  //sign + 30-bit result
     regs.m = result >> 15;  //store sign + top 15-bits
     regs.n = result <<  1;  //store low 15-bits + zero
-
-    regs.sgn = regs.flaga.s1 ? 0x7fff : 0x8000;
 
     step(1);
     synchronize_cpu();
@@ -48,8 +46,7 @@ void UPD77C25::exec_op(uint24 opcode) {
   uint4 src     = opcode >>  4;  //source
   uint4 dst     = opcode >>  0;  //destination
 
-  //ALU
-  unsigned p, a, r;
+  unsigned p, q, r;
   Flag flag;
 
   switch(pselect) {
@@ -60,19 +57,17 @@ void UPD77C25::exec_op(uint24 opcode) {
   }
 
   switch(asl) {
-    case 0: a = regs.a; flag = regs.flaga; break;
-    case 1: a = regs.b; flag = regs.flagb; break;
+    case 0: q = regs.a; flag = regs.flaga; break;
+    case 1: q = regs.b; flag = regs.flagb; break;
   }
 
   switch(alu) {
-    case 0: {
-      //NOP
+    case 0: {  //NOP
       break;
     }
 
-    case 1: {
-      //OR
-      r = a | p;
+    case 1: {  //OR
+      r = q | p;
       flag.s0 = r & 0x8000;
       flag.c = 0;
       flag.z = !r;
@@ -81,9 +76,8 @@ void UPD77C25::exec_op(uint24 opcode) {
       break;
     }
 
-    case 2: {
-      //AND
-      r = a & p;
+    case 2: {  //AND
+      r = q & p;
       flag.s0 = r & 0x8000;
       flag.c = 0;
       flag.z = !r;
@@ -92,9 +86,8 @@ void UPD77C25::exec_op(uint24 opcode) {
       break;
     }
 
-    case 3: {
-      //XOR
-      r = a ^ p;
+    case 3: {  //XOR
+      r = q ^ p;
       flag.s0 = r & 0x8000;
       flag.c = 0;
       flag.z = !r;
@@ -103,81 +96,86 @@ void UPD77C25::exec_op(uint24 opcode) {
       break;
     }
 
-    case 4: {
-      //SUB
-      r = a - p;
-    //flag.s1 = ?;
+    case 4: {  //SUB
+      r = q - p;
+      bool pov = (((p | q) & 0x8000) == 0x0000) && ((r & 0x8000) == 0x8000);
+      bool nov = (((p & q) & 0x8000) == 0x8000) && ((r & 0x8000) == 0x0000);
+      flag.s1 = nov;
       flag.s0 = r & 0x8000;
       flag.c = r > 0xffff;
       flag.z = !r;
     //flag.ov1 = ?;
-      flag.ov0 = ~(a ^ p) & (a ^ r) & 0x8000;
+      flag.ov0 = pov | nov;
       break;
     }
 
-    case 5: {
-      //ADD
-      r = a + p;
-    //flag.s1 = ?;
+    case 5: {  //ADD
+      r = q + p;
+      bool pov = (((p | q) & 0x8000) == 0x0000) && ((r & 0x8000) == 0x8000);
+      bool nov = (((p & q) & 0x8000) == 0x8000) && ((r & 0x8000) == 0x0000);
+      flag.s1 = nov;
       flag.s0 = r & 0x8000;
       flag.c = r > 0xffff;
       flag.z = !r;
     //flag.ov1 = ?;
-      flag.ov0 = ~(a ^ p) & (a ^ r) & 0x8000;
+      flag.ov0 = pov | nov;
       break;
     }
 
-    case 6: {
-      //SBB
-      r = a - p - flag.c;
-    //flag.s1 = ?;
+    case 6: {  //SBB
+      r = q - p - flag.c;
+      bool pov = (((p | q) & 0x8000) == 0x0000) && ((r & 0x8000) == 0x8000);
+      bool nov = (((p & q) & 0x8000) == 0x8000) && ((r & 0x8000) == 0x0000);
+      flag.s1 = nov;
       flag.s0 = r & 0x8000;
       flag.c = r > 0xffff;
       flag.z = !r;
     //flag.ov1 = ?;
-      flag.ov0 = ~(a ^ p) & (a ^ r) & 0x8000;
+      flag.ov0 = pov | nov;
       break;
     }
 
-    case 7: {
-      //ADC
-      r = a + p + flag.c;
-    //flag.s1 = ?;
+    case 7: {  //ADC
+      r = q + p + flag.c;
+      bool pov = (((p | q) & 0x8000) == 0x0000) && ((r & 0x8000) == 0x8000);
+      bool nov = (((p & q) & 0x8000) == 0x8000) && ((r & 0x8000) == 0x0000);
+      flag.s1 = nov;
       flag.s0 = r & 0x8000;
       flag.c = r > 0xffff;
       flag.z = !r;
     //flag.ov1 = ?;
-      flag.ov0 = ~(a ^ p) & (a ^ r) & 0x8000;
+      flag.ov0 = pov | nov;
       break;
     }
 
-    case 8: {
-      //DEC
-      r = a - 1;
-    //flag.s1 = ?;
+    case 8: {  //DEC
+      r = q - 1;
+      bool pov = (((p | q) & 0x8000) == 0x0000) && ((r & 0x8000) == 0x8000);
+      bool nov = (((p & q) & 0x8000) == 0x8000) && ((r & 0x8000) == 0x0000);
+      flag.s1 = nov;
       flag.s0 = r & 0x8000;
       flag.c = r > 0xffff;
       flag.z = !r;
     //flag.ov1 = ?;
-      flag.ov0 = ~(a ^ p) & (a ^ r) & 0x8000;
+      flag.ov0 = pov | nov;
       break;
     }
 
-    case 9: {
-      //INC
-      r = a + 1;
-    //flag.s1 = ?;
+    case 9: {  //INC
+      r = q + 1;
+      bool pov = (((p | q) & 0x8000) == 0x0000) && ((r & 0x8000) == 0x8000);
+      bool nov = (((p & q) & 0x8000) == 0x8000) && ((r & 0x8000) == 0x0000);
+      flag.s1 = nov;
       flag.s0 = r & 0x8000;
       flag.c = r > 0xffff;
       flag.z = !r;
     //flag.ov1 = ?;
-      flag.ov0 = ~(a ^ p) & (a ^ r) & 0x8000;
+      flag.ov0 = pov | nov;
       break;
     }
 
-    case 10: {
-      //CMP
-      r = !a;
+    case 10: {  //CMP (complement)
+      r = !q;
       flag.s0 = r & 0x8000;
       flag.c = 0;
       flag.z = !r;
@@ -186,20 +184,18 @@ void UPD77C25::exec_op(uint24 opcode) {
       break;
     }
 
-    case 11: {
-      //SHR1
-      r = a >> 1;
+    case 11: {  //SHR1
+      r = q >> 1;
       flag.s0 = r & 0x8000;
-      flag.c = a & 1;
+      flag.c = q & 1;
       flag.z = !r;
       flag.ov1 = 0;
       flag.ov0 = 0;
       break;
     }
 
-    case 12: {
-      //SHL1
-      r = a << 1;
+    case 12: {  //SHL1
+      r = q << 1;
       flag.s0 = r & 0x8000;
       flag.c = r & 0x8000;
       flag.z = !r;
@@ -208,9 +204,8 @@ void UPD77C25::exec_op(uint24 opcode) {
       break;
     }
 
-    case 13: {
-      //SHL2
-      r = a << 2;
+    case 13: {  //SHL2
+      r = q << 2;
       flag.s0 = r & 0x8000;
       flag.c = 0;
       flag.z = !r;
@@ -219,9 +214,8 @@ void UPD77C25::exec_op(uint24 opcode) {
       break;
     }
 
-    case 14: {
-      //SHL4
-      r = a << 4;
+    case 14: {  //SHL4
+      r = q << 4;
       flag.s0 = r & 0x8000;
       flag.c = 0;
       flag.z = !r;
@@ -230,9 +224,8 @@ void UPD77C25::exec_op(uint24 opcode) {
       break;
     }
 
-    case 15: {
-      //XCHG
-      r = (a & 0xff00) | (p & 0x00ff);
+    case 15: {  //XCHG
+      r = (q & 0xff00) | (p & 0x00ff);
       flag.s0 = r & 0x8000;
       flag.c = 0;
       flag.z = !r;
@@ -240,11 +233,6 @@ void UPD77C25::exec_op(uint24 opcode) {
       flag.ov0 = 0;
       break;
     }
-  }
-
-  switch(asl) {
-    case 0: regs.a = r; regs.flaga = flag; break;
-    case 1: regs.b = r; regs.flagb = flag; break;
   }
 
   switch(src) {
@@ -254,9 +242,9 @@ void UPD77C25::exec_op(uint24 opcode) {
     case  3: regs.idb = regs.tr; break;
     case  4: regs.idb = regs.dp; break;
     case  5: regs.idb = regs.rp; break;
-    case  6: regs.idb = regs.ro; break;
-    case  7: regs.idb = regs.sgn; break;
-    case  8: regs.idb = regs.dr; break;
+    case  6: regs.idb = dataROM[regs.rp]; break;
+    case  7: regs.idb = regs.flaga.s1 ? 0x7fff : 0x8000; break;
+    case  8: regs.idb = regs.dr; regs.sr.rqm = 1; break;
     case  9: regs.idb = regs.dr; break;
     case 10: regs.idb = regs.sr; break;
   //case 11: regs.idb = regs.sim; break;
@@ -264,6 +252,7 @@ void UPD77C25::exec_op(uint24 opcode) {
     case 13: regs.idb = regs.k; break;
     case 14: regs.idb = regs.l; break;
     case 15: regs.idb = dataRAM[regs.dp]; break;
+    default: print("OP: unhandled src case ", strhex<2>(src), "\n"); break;
   }
 
   switch(dst) {
@@ -273,16 +262,22 @@ void UPD77C25::exec_op(uint24 opcode) {
     case  3: regs.tr = regs.idb; break;
     case  4: regs.dp = regs.idb; break;
     case  5: regs.rp = regs.idb; break;
-    case  6: regs.dr = regs.idb; break;
+    case  6: regs.dr = regs.idb; regs.sr.rqm = 1; break;
     case  7: regs.sr = (regs.sr & 0x9000) | (regs.idb & ~0x9000); break;
   //case  8: regs.sol = regs.idb; break;
   //case  9: regs.som = regs.idb; break;
     case 10: regs.k = regs.idb; break;
     case 11: regs.k = regs.idb; regs.l = dataROM[regs.rp]; break;
-  //case 12: regs.klm = regs.idb; break;
+    case 12: regs.k = dataRAM[regs.dp | 0x40]; regs.l = regs.idb; break;
     case 13: regs.l = regs.idb; break;
     case 14: regs.trb = regs.idb; break;
     case 15: dataRAM[regs.dp] = regs.idb; break;
+    default: print("OP: unhandled dst case ", strhex<2>(dst), "\n"); break;
+  }
+
+  switch(asl) {
+    case 0: regs.a = r; regs.flaga = flag; break;
+    case 1: regs.b = r; regs.flagb = flag; break;
   }
 
   switch(dpl) {
@@ -292,7 +287,7 @@ void UPD77C25::exec_op(uint24 opcode) {
     case 3: regs.dp = (regs.dp & 0xf0); break;  //DPCLR
   }
 
-  regs.dp = regs.dp ^ (dphm << 4);
+  regs.dp ^= dphm << 4;
 
   switch(rpdcr) {
     case 0: break;  //RPNOP
@@ -369,7 +364,7 @@ void UPD77C25::exec_ld(uint24 opcode) {
     case  3: regs.tr = id; break;
     case  4: regs.dp = id; break;
     case  5: regs.rp = id; break;
-    case  6: regs.dr = id; break;
+    case  6: regs.dr = id; regs.sr.rqm = 1; break;
     case  7: regs.sr = (regs.sr & 0x9000) | (id & ~0x9000); break;
   //case  8: regs.sol = id; break;
   //case  9: regs.som = id; break;
@@ -379,6 +374,7 @@ void UPD77C25::exec_ld(uint24 opcode) {
     case 13: regs.l = id; break;
     case 14: regs.trb = id; break;
     case 15: dataRAM[regs.dp] = id; break;
+    default: print("LD: unhandled dst case ", strhex<2>(dst), "\n"); break;
   }
 }
 

@@ -5,13 +5,13 @@ string UPD77C25::disassemble(uint11 ip) {
 
   if(type == 0 || type == 1) {  //OP,RT
     uint2 pselect = opcode >> 20;
-    uint4 alu = opcode >> 16;
-    uint1 asl = opcode >> 15;
-    uint2 dpl = opcode >> 13;
-    uint4 dphm = opcode >> 9;
-    uint1 rpdcr = opcode >> 8;
-    uint4 src = opcode >> 4;
-    uint4 dst = opcode >> 0;
+    uint4 alu     = opcode >> 16;
+    uint1 asl     = opcode >> 15;
+    uint2 dpl     = opcode >> 13;
+    uint4 dphm    = opcode >>  9;
+    uint1 rpdcr   = opcode >>  8;
+    uint4 src     = opcode >>  4;
+    uint4 dst     = opcode >>  0;
 
     switch(alu) {
       case  0: output << "nop     "; break;
@@ -32,56 +32,58 @@ string UPD77C25::disassemble(uint11 ip) {
       case 15: output << "xchg    "; break;
     }
 
-    switch(asl) {
-      case 0: output << "a,"; break;
-      case 1: output << "b,"; break;
+    if(alu < 8) {
+      switch(pselect) {
+        case 0: output << "ram,"; break;
+        case 1: output << "idb,"; break;
+        case 2: output << "m,"; break;
+        case 3: output << "n,"; break;
+      }
     }
 
-    switch(pselect) {
-      case 0: output << "ram"; break;
-      case 1: output << "idb"; break;
-      case 2: output << "m"; break;
-      case 3: output << "n"; break;
+    switch(asl) {
+      case 0: output << "a"; break;
+      case 1: output << "b"; break;
     }
 
     if(dst) {
       output << "\n     mov     ";
 
-      switch(dst) {
-        case  0: output << "non,"; break;
+      switch(src) {
+        case  0: output << "trb,"; break;
         case  1: output << "a,"; break;
         case  2: output << "b,"; break;
         case  3: output << "tr,"; break;
         case  4: output << "dp,"; break;
         case  5: output << "rp,"; break;
-        case  6: output << "dr,"; break;
-        case  7: output << "sr,"; break;
-        case  8: output << "sol,"; break;
-        case  9: output << "som,"; break;
-        case 10: output << "k,"; break;
-        case 11: output << "klr,"; break;
-        case 12: output << "klm,"; break;
-        case 13: output << "l,"; break;
-        case 14: output << "trb,"; break;
+        case  6: output << "ro,"; break;
+        case  7: output << "sgn,"; break;
+        case  8: output << "dr,"; break;
+        case  9: output << "drnf,"; break;
+        case 10: output << "sr,"; break;
+        case 11: output << "sim,"; break;
+        case 12: output << "sil,"; break;
+        case 13: output << "k,"; break;
+        case 14: output << "l,"; break;
         case 15: output << "mem,"; break;
       }
 
-      switch(src) {
-        case  0: output << "trb"; break;
+      switch(dst) {
+        case  0: output << "non"; break;
         case  1: output << "a"; break;
         case  2: output << "b"; break;
         case  3: output << "tr"; break;
         case  4: output << "dp"; break;
         case  5: output << "rp"; break;
-        case  6: output << "ro"; break;
-        case  7: output << "sgn"; break;
-        case  8: output << "dr"; break;
-        case  9: output << "drnf"; break;
-        case 10: output << "sr"; break;
-        case 11: output << "sim"; break;
-        case 12: output << "sil"; break;
-        case 13: output << "k"; break;
-        case 14: output << "l"; break;
+        case  6: output << "dr"; break;
+        case  7: output << "sr"; break;
+        case  8: output << "sol"; break;
+        case  9: output << "som"; break;
+        case 10: output << "k"; break;
+        case 11: output << "klr"; break;
+        case 12: output << "klm"; break;
+        case 13: output << "l"; break;
+        case 14: output << "trb"; break;
         case 15: output << "mem"; break;
       }
     }
@@ -127,7 +129,7 @@ string UPD77C25::disassemble(uint11 ip) {
 
   if(type == 2) {  //JP
     uint9 brch = opcode >> 13;
-    uint11 na = opcode >> 2;
+    uint11 na  = opcode >>  2;
 
     switch(brch) {
       case 0x080: output << "jnca    "; break;
@@ -169,7 +171,7 @@ string UPD77C25::disassemble(uint11 ip) {
       default:    output << "??????  "; break;
     }
 
-    output << strhex<3>(na);
+    output << "$" << strhex<3>(na);
   }
 
   if(type == 3) {  //LD
@@ -177,26 +179,26 @@ string UPD77C25::disassemble(uint11 ip) {
     uint16 id = opcode >> 6;
     uint4 dst = opcode >> 0;
 
-    switch(dst) {
-      case  0: output << "non,"; break;
-      case  1: output << "a,"; break;
-      case  2: output << "b,"; break;
-      case  3: output << "tr,"; break;
-      case  4: output << "dp,"; break;
-      case  5: output << "rp,"; break;
-      case  6: output << "dr,"; break;
-      case  7: output << "sr,"; break;
-      case  8: output << "sol,"; break;
-      case  9: output << "som,"; break;
-      case 10: output << "k,"; break;
-      case 11: output << "klr,"; break;
-      case 12: output << "klm,"; break;
-      case 13: output << "l,"; break;
-      case 14: output << "trb,"; break;
-      case 15: output << "mem,"; break;
-    }
+    output << "$" << strhex<4>(id) << ",";
 
-    output << strhex<4>(id);
+    switch(dst) {
+      case  0: output << "non"; break;
+      case  1: output << "a"; break;
+      case  2: output << "b"; break;
+      case  3: output << "tr"; break;
+      case  4: output << "dp"; break;
+      case  5: output << "rp"; break;
+      case  6: output << "dr"; break;
+      case  7: output << "sr"; break;
+      case  8: output << "sol"; break;
+      case  9: output << "som"; break;
+      case 10: output << "k"; break;
+      case 11: output << "klr"; break;
+      case 12: output << "klm"; break;
+      case 13: output << "l"; break;
+      case 14: output << "trb"; break;
+      case 15: output << "mem"; break;
+    }
   }
 
   return output;
