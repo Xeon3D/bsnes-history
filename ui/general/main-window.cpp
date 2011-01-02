@@ -101,6 +101,9 @@ void MainWindow::create() {
   toolsDebugger.create(tools, "Debugger ...");
   #endif
 
+  upd.create(*this, "uPD77C25");
+  updTrace.create(upd, "Trace Instructions");
+
   help.create(*this, "Help");
   helpAbout.create(help, "About ...");
 
@@ -199,6 +202,11 @@ void MainWindow::create() {
   #if defined(DEBUGGER)
   toolsDebugger.onTick = []() { debugger.setVisible(); };
   #endif
+
+  updTrace.onTick = []() {
+    SNES::upd77c25.trace_enable(mainWindow.updTrace.checked());
+    utility.showMessage({ "uPD77C25 tracing ", mainWindow.updTrace.checked() ? "enabled" : "disabled" });
+  };
 
   helpAbout.onTick = []() {
     MessageWindow::information(mainWindow, {

@@ -1,3 +1,6 @@
+file tracer_fp;
+bool tracer_enable = false;
+
 string UPD77C25::disassemble(uint11 ip) {
   string output = { hex<3>(ip), "  " };
   uint24 opcode = programROM[ip];
@@ -202,4 +205,13 @@ string UPD77C25::disassemble(uint11 ip) {
   }
 
   return output;
+}
+
+void UPD77C25::trace_enable(bool state) {
+  tracer_enable = state;
+  if(tracer_enable == true) {
+    tracer_fp.open("updtrace.log", file::mode::write);
+  } else {
+    tracer_fp.close();
+  }
 }

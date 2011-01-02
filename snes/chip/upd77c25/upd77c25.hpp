@@ -14,6 +14,7 @@ public:
   uint16 dataRAM[256];
 
   string disassemble(uint11 ip);
+  void trace_enable(bool);
 
 private:
   struct Flag {
