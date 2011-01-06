@@ -7,7 +7,7 @@
 //* interrupts
 //* DMA
 
-#include <snes.hpp>
+#include <snes/snes.hpp>
 
 #define UPD77C25_CPP
 namespace SNES {
@@ -25,22 +25,6 @@ void UPD77C25::enter() {
   while(true) {
     if(scheduler.sync == Scheduler::SynchronizeMode::All) {
       scheduler.exit(Scheduler::ExitReason::SynchronizeEvent);
-    }
-
-    if(tracer_enable) {
-      static unsigned last_pc = ~0;
-      if(regs.pc != last_pc) {
-        tracer_fp.print(string(
-           "A:", hex<4>((uint16)regs.a), " B:", hex<4>((uint16)regs.b),
-           " K:", hex<4>((uint16)regs.k), " L:", hex<4>((uint16)regs.l),
-           " M:", hex<4>((uint16)regs.m), " N:", hex<4>((uint16)regs.n),
-           " RP:", hex<4>(regs.rp), " DP:", hex<4>(regs.dp),
-           " FA:", hex<2>((unsigned)regs.flaga), " FB:", hex<2>((unsigned)regs.flagb),
-           " IDB:", hex<4>(regs.idb), "\n",
-          disassemble(regs.pc), "\n\n"
-        ));
-        last_pc = regs.pc;
-      }
     }
 
     uint24 opcode = programROM[regs.pc++];

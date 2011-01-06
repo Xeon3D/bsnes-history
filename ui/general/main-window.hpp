@@ -70,9 +70,6 @@ struct MainWindow : TopLevelWindow {
   MenuItem toolsDebugger;
   #endif
 
-  Menu upd;
-  MenuCheckItem updTrace;
-
   Menu help;
   MenuItem helpAbout;
 

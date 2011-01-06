@@ -13,7 +13,6 @@ void MainWindow::create() {
   systemLoadCartridgeBsx.create(systemLoadCartridgeSpecial, "Load BS-X Cartridge ...");
   systemLoadCartridgeSufamiTurbo.create(systemLoadCartridgeSpecial, "Load Sufami Turbo Cartridge ...");
   systemLoadCartridgeSuperGameBoy.create(systemLoadCartridgeSpecial, "Load Super Game Boy Cartridge ...");
-  systemLoadCartridgeSuperGameBoy.setEnabled(SNES::supergameboy.opened());
   systemSeparator1.create(system);
   systemPower.create(system, "Power Cycle");
   systemReset.create(system, "Reset");
@@ -100,9 +99,6 @@ void MainWindow::create() {
   toolsSeparator3.create(tools);
   toolsDebugger.create(tools, "Debugger ...");
   #endif
-
-  upd.create(*this, "uPD77C25");
-  updTrace.create(upd, "Trace Instructions");
 
   help.create(*this, "Help");
   helpAbout.create(help, "About ...");
@@ -202,11 +198,6 @@ void MainWindow::create() {
   #if defined(DEBUGGER)
   toolsDebugger.onTick = []() { debugger.setVisible(); };
   #endif
-
-  updTrace.onTick = []() {
-    SNES::upd77c25.trace_enable(mainWindow.updTrace.checked());
-    utility.showMessage({ "uPD77C25 tracing ", mainWindow.updTrace.checked() ? "enabled" : "disabled" });
-  };
 
   helpAbout.onTick = []() {
     MessageWindow::information(mainWindow, {
