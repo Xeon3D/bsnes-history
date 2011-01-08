@@ -1,6 +1,4 @@
-#ifdef UPDCORE_CPP
-
-string uPDcore::disassemble(uint11 ip) {
+string UPD77C25::disassemble(uint11 ip) {
   string output = { hex<3>(ip), "  " };
   uint24 opcode = programROM[ip];
   uint2 type = opcode >> 22;
@@ -205,5 +203,3 @@ string uPDcore::disassemble(uint11 ip) {
 
   return output;
 }
-
-#endif

@@ -28,8 +28,7 @@ void Cartridge::load(Mode cartridge_mode, const lstring &xml_list) {
   has_bsx_slot   = false;
   has_superfx    = false;
   has_sa1        = false;
-  has_upd7725    = false;
-  has_upd96050   = false;
+  has_upd77c25   = false;
   has_srtc       = false;
   has_sdd1       = false;
   has_spc7110    = false;
@@ -43,7 +42,7 @@ void Cartridge::load(Mode cartridge_mode, const lstring &xml_list) {
   has_serial     = false;
 
   parse_xml(xml_list);
-//foreach(xml_item, xml_list) print(xml_item, "\n\n");
+  foreach(xml_item, xml_list) print(xml_item, "\n\n");
 
   if(ram_size > 0) {
     memory::cartram.map(allocate<uint8_t>(ram_size, 0xff), ram_size);

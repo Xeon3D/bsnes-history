@@ -1,19 +1,12 @@
-#ifdef UPDCORE_CPP
+#ifdef UPD77C25_CPP
 
-void uPDcore::serialize(serializer &s) {
-  s.array(dataRAM, dataRAMSize);
+void UPD77C25::serialize(serializer &s) {
+  s.array(dataRAM);
 
-  s.integer(regs.pc.data);
-  s.integer(regs.pc.mask);
-
-  s.integer(regs.rp.data);
-  s.integer(regs.rp.mask);
-
-  s.integer(regs.dp.data);
-  s.integer(regs.dp.mask);
-
-  s.array(regs.stack);
-
+  s.integer(regs.pc);
+  for(unsigned n = 0; n < 4; n++) s.integer(regs.stack[n]);
+  s.integer(regs.rp);
+  s.integer(regs.dp);
   s.integer(regs.k);
   s.integer(regs.l);
   s.integer(regs.m);
