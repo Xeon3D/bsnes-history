@@ -35,7 +35,8 @@ void Cartridge::parse_xml_cartridge(const char *data) {
         if(node.name == "icd2") xml_parse_icd2(node);
         if(node.name == "superfx") xml_parse_superfx(node);
         if(node.name == "sa1") xml_parse_sa1(node);
-        if(node.name == "upd96050") xml_parse_upd77c25(node);
+        if(node.name == "upd7725") xml_parse_upd7725(node);
+        if(node.name == "upd96050") xml_parse_upd96050(node);
         if(node.name == "bsx") xml_parse_bsx(node);
         if(node.name == "sufamiturbo") xml_parse_sufamiturbo(node);
         if(node.name == "srtc") xml_parse_srtc(node);
@@ -106,16 +107,12 @@ void Cartridge::xml_parse_icd2(xml_element &root) {
   }
 
   foreach(node, root.element) {
-    if(node.name == "mmio") {
-      foreach(leaf, node.element) {
-        if(leaf.name == "map") {
-          Mapping m((Memory&)icd2);
-          foreach(attr, leaf.attribute) {
-            if(attr.name == "address") xml_parse_address(m, attr.content);
-          }
-          mapping.append(m);
-        }
+    if(node.name == "map") {
+      Mapping m((Memory&)icd2);
+      foreach(attr, node.attribute) {
+        if(attr.name == "address") xml_parse_address(m, attr.content);
       }
+      mapping.append(m);
     }
   }
 }
@@ -229,40 +226,119 @@ void Cartridge::xml_parse_sa1(xml_element &root) {
   }
 }
 
-void Cartridge::xml_parse_upd77c25(xml_element &root) {
-  has_upd77c25 = true;
+void Cartridge::xml_parse_upd7725(xml_element &root) {
+  has_upd7725 = true;
 
   bool program = false;
   bool sha256 = false;
   string xml_hash;
   string rom_hash;
 
-  for(unsigned n = 0; n < 16384; n++) upd77c25.programROM[n] = 0;
-  for(unsigned n = 0; n < 2048; n++) upd77c25.dataROM[n] = 0;
+  for(unsigned n = 0; n < 2048; n++) upd7725.programROM[n] = 0;
+  for(unsigned n = 0; n < 1024; n++) upd7725.dataROM[n] = 0;
 
   foreach(attr, root.attribute) {
     if(attr.name == "program") {
       file fp;
       fp.open(string(dir(basename()), attr.content), file::mode::read);
-      if(fp.open() && fp.size() == 52*1024) {
+      if(fp.open() && fp.size() == 8192) {
         program = true;
 
-        for(unsigned n = 0; n < 16384; n++) {
-          upd77c25.programROM[n] = fp.readm(3);
-        }
         for(unsigned n = 0; n < 2048; n++) {
-          upd77c25.dataROM[n] = fp.readm(2);
+          upd7725.programROM[n] = fp.readm(3);
+        }
+        for(unsigned n = 0; n < 1024; n++) {
+          upd7725.dataROM[n] = fp.readm(2);
         }
 
         fp.seek(0);
-        uint8 data[52*1024];
-        fp.read(data, 52*1024);
+        uint8 data[8192];
+        fp.read(data, 8192);
         fp.close();
 
         sha256_ctx sha;
         uint8 shahash[32];
         sha256_init(&sha);
-        sha256_chunk(&sha, data, 52*1024);
+        sha256_chunk(&sha, data, 8192);
+        sha256_final(&sha);
+        sha256_hash(&sha, shahash);
+        foreach(n, shahash) rom_hash.append(hex<2>(n));
+      }
+    } else if(attr.name == "sha256") {
+      sha256 = true;
+      xml_hash = attr.content;
+    }
+  }
+
+  foreach(node, root.element) {
+    if(node.name == "dr") {
+      foreach(leaf, node.element) {
+        if(leaf.name == "map") {
+          Mapping m(upd7725dr);
+          foreach(attr, leaf.attribute) {
+            if(attr.name == "address") xml_parse_address(m, attr.content);
+          }
+          mapping.append(m);
+        }
+      }
+    } else if(node.name == "sr") {
+      foreach(leaf, node.element) {
+        if(leaf.name == "map") {
+          Mapping m(upd7725sr);
+          foreach(attr, leaf.attribute) {
+            if(attr.name == "address") xml_parse_address(m, attr.content);
+          }
+          mapping.append(m);
+        }
+      }
+    }
+  }
+
+  if(program == false) {
+    system.interface->message("Warning: uPD7725 program is missing.");
+  } else if(sha256 == true && xml_hash != rom_hash) {
+    system.interface->message({
+      "Warning: uPD7725 program SHA256 is incorrect.\n\n"
+      "Expected:\n", xml_hash, "\n\n"
+      "Actual:\n", rom_hash
+    });
+  }
+}
+
+void Cartridge::xml_parse_upd96050(xml_element &root) {
+  has_upd96050 = true;
+
+  bool program = false;
+  bool sha256 = false;
+  string xml_hash;
+  string rom_hash;
+
+  for(unsigned n = 0; n < 16384; n++) upd96050.programROM[n] = 0;
+  for(unsigned n = 0; n <  2048; n++) upd96050.dataROM[n] = 0;
+
+  foreach(attr, root.attribute) {
+    if(attr.name == "program") {
+      file fp;
+      fp.open(string(dir(basename()), attr.content), file::mode::read);
+      if(fp.open() && fp.size() == 52 * 1024) {
+        program = true;
+
+        for(unsigned n = 0; n < 16384; n++) {
+          upd96050.programROM[n] = fp.readm(3);
+        }
+        for(unsigned n = 0; n <  2048; n++) {
+          upd96050.dataROM[n] = fp.readm(2);
+        }
+
+        fp.seek(0);
+        uint8 data[52 * 1024];
+        fp.read(data, 52 * 1024);
+        fp.close();
+
+        sha256_ctx sha;
+        uint8 shahash[32];
+        sha256_init(&sha);
+        sha256_chunk(&sha, data, 52 * 1024);
         sha256_final(&sha);
         sha256_hash(&sha, shahash);
         foreach(n, shahash) rom_hash.append(hex<2>(n));
@@ -275,7 +351,7 @@ void Cartridge::xml_parse_upd77c25(xml_element &root) {
 
   foreach(node, root.element) {
     if(node.name == "map") {
-      Mapping m(upd77c25);
+      Mapping m(upd96050);
       foreach(attr, node.attribute) {
         if(attr.name == "address") xml_parse_address(m, attr.content);
       }
@@ -284,10 +360,10 @@ void Cartridge::xml_parse_upd77c25(xml_element &root) {
   }
 
   if(program == false) {
-    system.interface->message("Warning: uPD77C25 program is missing.");
+    system.interface->message("Warning: uPD96050 program is missing.");
   } else if(sha256 == true && xml_hash != rom_hash) {
     system.interface->message({
-      "Warning: uPD77C25 program SHA256 is incorrect.\n\n"
+      "Warning: uPD96050 program SHA256 is incorrect.\n\n"
       "Expected:\n", xml_hash, "\n\n"
       "Actual:\n", rom_hash
     });
@@ -375,16 +451,12 @@ void Cartridge::xml_parse_srtc(xml_element &root) {
   has_srtc = true;
 
   foreach(node, root.element) {
-    if(node.name == "mmio") {
-      foreach(leaf, node.element) {
-        if(leaf.name == "map") {
-          Mapping m(srtc);
-          foreach(attr, leaf.attribute) {
-            if(attr.name == "address") xml_parse_address(m, attr.content);
-          }
-          mapping.append(m);
-        }
+    if(node.name == "map") {
+      Mapping m(srtc);
+      foreach(attr, node.attribute) {
+        if(attr.name == "address") xml_parse_address(m, attr.content);
       }
+      mapping.append(m);
     }
   }
 }
@@ -489,16 +561,12 @@ void Cartridge::xml_parse_cx4(xml_element &root) {
   has_cx4 = true;
 
   foreach(node, root.element) {
-    if(node.name == "mmio") {
-      foreach(leaf, node.element) {
-        if(leaf.name == "map") {
-          Mapping m(cx4);
-          foreach(attr, leaf.attribute) {
-            if(attr.name == "address") xml_parse_address(m, attr.content);
-          }
-          mapping.append(m);
-        }
+    if(node.name == "map") {
+      Mapping m(cx4);
+      foreach(attr, node.attribute) {
+        if(attr.name == "address") xml_parse_address(m, attr.content);
       }
+      mapping.append(m);
     }
   }
 }
@@ -507,16 +575,12 @@ void Cartridge::xml_parse_obc1(xml_element &root) {
   has_obc1 = true;
 
   foreach(node, root.element) {
-    if(node.name == "mmio") {
-      foreach(leaf, node.element) {
-        if(leaf.name == "map") {
-          Mapping m(obc1);
-          foreach(attr, leaf.attribute) {
-            if(attr.name == "address") xml_parse_address(m, attr.content);
-          }
-          mapping.append(m);
-        }
+    if(node.name == "map") {
+      Mapping m(obc1);
+      foreach(attr, node.attribute) {
+        if(attr.name == "address") xml_parse_address(m, attr.content);
       }
+      mapping.append(m);
     }
   }
 }
@@ -539,16 +603,12 @@ void Cartridge::xml_parse_setadsp(xml_element &root) {
   Memory *map[3] = { 0, &st0010, 0 };
 
   foreach(node, root.element) {
-    if(node.name == "mmio" && map[program]) {
-      foreach(leaf, node.element) {
-        if(leaf.name == "map") {
-          Mapping m(*map[program]);
-          foreach(attr, leaf.attribute) {
-            if(attr.name == "address") xml_parse_address(m, attr.content);
-          }
-          mapping.append(m);
-        }
+    if(node.name == "map" && map[program]) {
+      Mapping m(*map[program]);
+      foreach(attr, node.attribute) {
+        if(attr.name == "address") xml_parse_address(m, attr.content);
       }
+      mapping.append(m);
     }
   }
 }
@@ -568,16 +628,12 @@ void Cartridge::xml_parse_setarisc(xml_element &root) {
   MMIO *map[2] = { 0, &st0018 };
 
   foreach(node, root.element) {
-    if(node.name == "mmio" && map[program]) {
-      foreach(leaf, node.element) {
-        if(leaf.name == "map") {
-          Mapping m(*map[program]);
-          foreach(attr, leaf.attribute) {
-            if(attr.name == "address") xml_parse_address(m, attr.content);
-          }
-          mapping.append(m);
-        }
+    if(node.name == "map" && map[program]) {
+      Mapping m(*map[program]);
+      foreach(attr, node.attribute) {
+        if(attr.name == "address") xml_parse_address(m, attr.content);
       }
+      mapping.append(m);
     }
   }
 }

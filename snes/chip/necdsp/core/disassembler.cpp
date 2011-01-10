@@ -1,4 +1,6 @@
-string UPD77C25::disassemble(uint11 ip) {
+#ifdef UPDCORE_CPP
+
+string uPDcore::disassemble(uint14 ip) {
   string output = { hex<3>(ip), "  " };
   uint24 opcode = programROM[ip];
   uint2 type = opcode >> 22;
@@ -46,7 +48,7 @@ string UPD77C25::disassemble(uint11 ip) {
       case 1: output << "b"; break;
     }
 
-    if(dst) {
+    if(1||dst) {
       output << "\n     mov     ";
 
       switch(src) {
@@ -203,3 +205,5 @@ string UPD77C25::disassemble(uint11 ip) {
 
   return output;
 }
+
+#endif
