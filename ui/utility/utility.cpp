@@ -131,6 +131,12 @@ void Utility::setFullScreen(bool fullScreen) {
 
     mainWindow.viewport.setGeometry({ viewportX, viewportY, viewportWidth, viewportHeight });
   }
+
+  if(application.compositorActive) {
+    if(advancedSettings.compositorPolicyFullScreen.checked()) {
+      compositor::enable(fullScreen == false);
+    }
+  }
 }
 
 void Utility::setFilter() {

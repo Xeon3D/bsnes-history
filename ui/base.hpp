@@ -1,6 +1,7 @@
 #include <snes/snes.hpp>
 
 #include <nall/base64.hpp>
+#include <nall/compositor.hpp>
 #include <nall/config.hpp>
 #include <nall/directory.hpp>
 #include <nall/filemap.hpp>
@@ -40,6 +41,8 @@ struct Application {
   Font proportionalFont;
   Font proportionalFontBold;
   Font monospaceFont;
+  Font titleFont;
+  bool compositorActive;
 
   bool pause;
   bool quit;
