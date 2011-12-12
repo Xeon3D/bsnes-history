@@ -50,8 +50,10 @@ struct Color {
 struct Geometry {
   signed x, y;
   unsigned width, height;
+  nall::string text();
   inline Geometry() : x(0), y(0), width(0), height(0) {}
   inline Geometry(signed x, signed y, unsigned width, unsigned height) : x(x), y(y), width(width), height(height) {}
+  Geometry(const nall::string &text);
 };
 
 struct Position {
@@ -70,21 +72,6 @@ struct Font {
   nall::string description;
   Geometry geometry(const nall::string &text);
   Font(const nall::string &description = "");
-};
-
-struct Image {
-  uint32_t *data;
-  unsigned width, height;
-  bool load(const nall::string &filename, const Color &alpha = Color{255, 255, 255});
-  void load(const uint32_t *data, const Size &size);
-  Image& operator=(const Image &source);
-  Image& operator=(Image &&source);
-  Image();
-  Image(const nall::string &filename, const Color &alpha = Color{255, 255, 255});
-  Image(const uint32_t *data, const Size &size);
-  Image(const Image &source);
-  Image(Image &&source);
-  ~Image();
 };
 
 struct Object {
@@ -223,7 +210,7 @@ struct Separator : private nall::base_from_member<pSeparator&>, Action {
 };
 
 struct Item : private nall::base_from_member<pItem&>, Action {
-  nall::function<void ()> onTick;
+  nall::function<void ()> onActivate;
 
   void setText(const nall::string &text);
 
@@ -235,7 +222,7 @@ struct Item : private nall::base_from_member<pItem&>, Action {
 };
 
 struct CheckItem : private nall::base_from_member<pCheckItem&>, Action {
-  nall::function<void ()> onTick;
+  nall::function<void ()> onToggle;
 
   bool checked();
   void setChecked(bool checked = true);
@@ -252,7 +239,7 @@ struct RadioItem : private nall::base_from_member<pRadioItem&>, Action {
   template<typename... Args> static void group(Args&... args) { group({ args... }); }
   static void group(const nall::reference_array<RadioItem&> &list);
 
-  nall::function<void ()> onTick;
+  nall::function<void ()> onActivate;
 
   bool checked();
   void setChecked();
@@ -317,7 +304,7 @@ struct Widget : private nall::base_from_member<pWidget&>, Sizable {
 };
 
 struct Button : private nall::base_from_member<pButton&>, Widget {
-  nall::function<void ()> onTick;
+  nall::function<void ()> onActivate;
 
   void setText(const nall::string &text);
 
@@ -330,7 +317,7 @@ struct Button : private nall::base_from_member<pButton&>, Widget {
 
 struct Canvas : private nall::base_from_member<pCanvas&>, Widget {
   uint32_t* data();
-  bool setImage(const Image &image);
+  bool setImage(const nall::image &image);
   void setSize(const Size &size);
   Size size();
   void update();
@@ -343,7 +330,7 @@ struct Canvas : private nall::base_from_member<pCanvas&>, Widget {
 };
 
 struct CheckBox : private nall::base_from_member<pCheckBox&>, Widget {
-  nall::function<void ()> onTick;
+  nall::function<void ()> onToggle;
 
   bool checked();
   void setChecked(bool checked = true);
@@ -446,7 +433,7 @@ struct LineEdit : private nall::base_from_member<pLineEdit&>, Widget {
 struct ListView : private nall::base_from_member<pListView&>, Widget {
   nall::function<void ()> onActivate;
   nall::function<void ()> onChange;
-  nall::function<void (unsigned)> onTick;
+  nall::function<void (unsigned)> onToggle;
 
   template<typename... Args> void append(const Args&... args) { append_({ args... }); }
   void autoSizeColumns();
@@ -488,7 +475,7 @@ struct RadioBox : private nall::base_from_member<pRadioBox&>, Widget {
   template<typename... Args> static void group(Args&... args) { group({ args... }); }
   static void group(const nall::reference_array<RadioBox&> &list);
 
-  nall::function<void ()> onTick;
+  nall::function<void ()> onActivate;
 
   bool checked();
   void setChecked();
