@@ -22,7 +22,8 @@ void InterfaceSNES::setController(bool port, unsigned device) {
   case 4: return SNES::input.connect(1, SNES::Input::Device::SuperScope);
   case 5: return SNES::input.connect(1, SNES::Input::Device::Justifier);
   case 6: return SNES::input.connect(1, SNES::Input::Device::Justifiers);
-  case 7: return SNES::input.connect(1, SNES::Input::Device::Serial);
+  case 7: return SNES::input.connect(1, SNES::Input::Device::UART);
+  case 8: return SNES::input.connect(1, SNES::Input::Device::USART);
   }
 }
 
@@ -49,11 +50,12 @@ bool InterfaceSNES::loadCartridge(const string &filename, CartridgePath &cartrid
 }
 
 bool InterfaceSNES::loadCartridge(string basename) {
+  interface->unloadCartridge();
+
   uint8_t *data;
   unsigned size;
   if(loadCartridge(basename, interface->base, data, size) == false) return false;
 
-  interface->unloadCartridge();
   interface->game = interface->base;
   interface->cartridgeTitle = interface->base.title();
 
@@ -74,12 +76,13 @@ bool InterfaceSNES::loadCartridge(string basename) {
 }
 
 bool InterfaceSNES::loadSatellaviewSlottedCartridge(string basename, string slotname) {
+  interface->unloadCartridge();
+
   uint8_t *data[2];
   unsigned size[2];
   if(loadCartridge(basename, interface->base, data[0], size[0]) == false) return false;
   loadCartridge(slotname, interface->slot[0], data[1], size[1]);
 
-  interface->unloadCartridge();
   interface->game = !data[1] ? interface->base : interface->slot[0];  //TODO: subfolder for folders; concatenation for files
   interface->cartridgeTitle = interface->base.title();
   if(data[1]) interface->cartridgeTitle.append(" + ", interface->slot[0].title());
@@ -103,12 +106,13 @@ bool InterfaceSNES::loadSatellaviewSlottedCartridge(string basename, string slot
 }
 
 bool InterfaceSNES::loadSatellaviewCartridge(string basename, string slotname) {
+  interface->unloadCartridge();
+
   uint8_t *data[2];
   unsigned size[2];
   if(loadCartridge(basename, interface->base, data[0], size[0]) == false) return false;
   loadCartridge(slotname, interface->slot[0], data[1], size[1]);
 
-  interface->unloadCartridge();
   interface->game = !data[1] ? interface->base : interface->slot[0];
   interface->cartridgeTitle = interface->base.title();
   if(data[1]) interface->cartridgeTitle = interface->slot[0].title();
@@ -132,13 +136,14 @@ bool InterfaceSNES::loadSatellaviewCartridge(string basename, string slotname) {
 }
 
 bool InterfaceSNES::loadSufamiTurboCartridge(string basename, string slotAname, string slotBname) {
+  interface->unloadCartridge();
+
   uint8_t *data[3];
   unsigned size[3];
   if(loadCartridge(basename, interface->base, data[0], size[0]) == false) return false;
   loadCartridge(slotAname, interface->slot[0], data[1], size[1]);
   loadCartridge(slotBname, interface->slot[1], data[2], size[2]);
 
-  interface->unloadCartridge();
   interface->game = !data[1] ? interface->base : interface->slot[0];  //TODO: subfolder for folders; concatenation for files
   interface->cartridgeTitle = interface->base.title();
   if( data[1] && !data[2]) interface->cartridgeTitle = interface->slot[0].title();
@@ -168,12 +173,13 @@ bool InterfaceSNES::loadSufamiTurboCartridge(string basename, string slotAname, 
 }
 
 bool InterfaceSNES::loadSuperGameBoyCartridge(string basename, string slotname) {
+  interface->unloadCartridge();
+
   uint8_t *data[2];
   unsigned size[2];
   if(loadCartridge(basename, interface->base, data[0], size[0]) == false) return false;
   loadCartridge(slotname, interface->slot[0], data[1], size[1]);
 
-  interface->unloadCartridge();
   interface->game = !data[1] ? interface->base : interface->slot[0];
   interface->cartridgeTitle = interface->base.title();
   if(data[1]) interface->cartridgeTitle = interface->slot[0].title();
@@ -407,7 +413,8 @@ string InterfaceSNES::path(SNES::Cartridge::Slot slot, const string &hint) {
       track.trim<1>("track-", ".pcm");
       return interface->base.filename(hint, { "-", decimal(track), ".pcm" });
     }
-    if(hint == "serial.so") return { dir(interface->base.name), "libserial.so" };
+    if(hint == "uart.so") return { dir(interface->base.name), "uart.so" };
+    if(hint == "usart.so") return { dir(interface->base.name), "usart.so" };
     if(hint.endswith(".rom")) return { dir(interface->base.name), hint };
   }
   return { dir(interface->base.name), hint };
