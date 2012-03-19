@@ -11,6 +11,7 @@ int16_t GbaController::poll(unsigned n) {
   case GBA::Input::Select: return select.poll();
   case GBA::Input::Start: return start.poll();
   }
+
   return 0;  //never reached
 }
 
@@ -27,6 +28,7 @@ GbaController::GbaController() {
   r.name = "R";
   select.name = "Select";
   start.name = "Start";
+
   bTurbo.name = "Turbo B";
   aTurbo.name = "Turbo A";
   lTurbo.name = "Turbo L";

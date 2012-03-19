@@ -31,7 +31,7 @@ Config::Config() {
   append(audio.frequency = 48000, "Audio::Frequency::Native");
   append(audio.frequencyNES = 1789772, "Audio::Frequency::NES");
   append(audio.frequencySNES = 32000, "Audio::Frequency::SNES");
-  append(audio.frequencyGameBoy = 4194304, "Audio::Frequency::GameBoy");
+  append(audio.frequencyGB = 4194304, "Audio::Frequency::GB");
   append(audio.frequencyGBA = 32768, "Audio::Frequency::GBA");
 
   append(input.driver = "", "Input::Driver");

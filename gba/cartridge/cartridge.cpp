@@ -1,35 +1,30 @@
 #include <gba/gba.hpp>
 
-#define CARTRIDGE_CPP
 namespace GBA {
 
 Cartridge cartridge;
 
-void Cartridge::load(const string &markup, const uint8_t *data, unsigned size) {
-  romdata = new uint8_t[romsize = size];
-  memcpy(romdata, data, size);
-  sha256 = nall::sha256(data, size);
+bool Cartridge::load(const string &markup, const uint8_t *data, unsigned size) {
+  if(cartridge.rom.data) delete[] cartridge.rom.data;
+  cartridge.rom.data = new uint8[cartridge.rom.size = size];
+  memcpy(cartridge.rom.data, data, size);
 
-  loaded = true;
+  sha256 = nall::sha256(cartridge.rom.data, cartridge.rom.size);
+
+  return loaded = true;
 }
 
 void Cartridge::unload() {
-  if(loaded == false) return;
-
-  delete[] romdata;
-  romdata = nullptr;
-  romsize = 0u;
-
+  if(loaded) return;
   loaded = false;
-}
 
-void Cartridge::power() {
+  delete[] cartridge.rom.data;
+  cartridge.rom.data = nullptr;
+  cartridge.rom.size = 0u;
 }
 
 Cartridge::Cartridge() {
   loaded = false;
-  romdata = nullptr;
-  romsize = 0u;
 }
 
 }

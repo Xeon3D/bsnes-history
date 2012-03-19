@@ -1,18 +1,17 @@
 #include <gba/gba.hpp>
 
-#define VIDEO_CPP
 namespace GBA {
 
 Video video;
 
 unsigned Video::color(unsigned color) const {
-  uint5_t b = color >> 10;
-  uint5_t g = color >>  5;
-  uint5_t r = color >>  0;
+  uint5 b = color >> 10;
+  uint5 g = color >>  5;
+  uint5 r = color >>  0;
 
-  uint10_t R = (r << 5) | (r << 0);
-  uint10_t G = (g << 5) | (g << 0);
-  uint10_t B = (b << 5) | (b << 0);
+  uint10 R = (r << 5) | (r << 0);
+  uint10 G = (g << 5) | (g << 0);
+  uint10 B = (b << 5) | (b << 0);
 
   return (R << 20) | (G << 10) | (B << 0);
 }
@@ -43,7 +42,7 @@ void Video::generate(Format format) {
 }
 
 Video::Video() {
-  palette = new unsigned[1 << 15]();
+  palette = new uint32[1 << 15]();
 }
 
 Video::~Video() {

@@ -1,6 +1,6 @@
 include $(nes)/Makefile
 include $(snes)/Makefile
-include $(gameboy)/Makefile
+include $(gb)/Makefile
 include $(gba)/Makefile
 name := bsnes
 

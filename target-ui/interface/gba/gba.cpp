@@ -17,16 +17,16 @@ bool InterfaceGBA::loadCartridge(const string &filename) {
   unsigned cartsize;
 
   if(filename.endswith("/")) {
-    if(!file::exists({filename, "bios.rom"})) {
-      message("Error: Game Boy Advance BIOS (bios.bin) not found.");
+    if(file::exists({filename, "bios.rom"}) == false) {
+      message("Error: Game Boy Advance BIOS (bios.rom) not found.");
       return false;
     }
     if(file::read({filename, "bios.rom"}, biosdata, biossize) == false) return false;
     if(file::read({filename, "program.rom"}, cartdata, cartsize) == false) return false;
     interface->base = {true, filename};
   } else {
-    if(!file::exists({dir(filename), "gbabios.rom"})) {
-      message("Error: Game Boy Advance BIOS (gbabios.bin) not found.");
+    if(file::exists({dir(filename), "gbabios.rom"}) == false) {
+      message("Error: Game Boy Advance BIOS (gbabios.rom) not found.");
       return false;
     }
     if(file::read({dir(filename), "gbabios.rom"}, biosdata, biossize) == false) return false;
@@ -53,19 +53,19 @@ bool InterfaceGBA::loadCartridge(const string &filename) {
 }
 
 void InterfaceGBA::unloadCartridge() {
-  GBA::system.unload();
+  return GBA::cartridge.unload();
 }
 
 void InterfaceGBA::power() {
-  GBA::system.power();
+  return GBA::system.power();
 }
 
 void InterfaceGBA::reset() {
-  GBA::system.power();  //GBA lacks reset button
+  return GBA::system.power();  //GBA has no reset button
 }
 
 void InterfaceGBA::run() {
-  GBA::system.run();
+  return GBA::system.run();
 }
 
 serializer InterfaceGBA::serialize() {

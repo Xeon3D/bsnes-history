@@ -14,12 +14,14 @@ namespace GBA {
   bgba - Game Boy Advance emulator
   author: byuu
   license: GPLv3
-  project started: 2012-03-17
+  project started: 2012-03-19
 */
 
 #include <libco/libco.h>
 
 namespace GBA {
+  enum : unsigned { Byte = 8, Half = 16, Word = 32 };
+
   struct Processor {
     cothread_t thread;
     unsigned frequency;
@@ -45,17 +47,15 @@ namespace GBA {
     }
   };
 
-  #include <gba/interface/interface.hpp>
-  #include <gba/system/system.hpp>
-  #include <gba/scheduler/scheduler.hpp>
-  #include <gba/cartridge/cartridge.hpp>
   #include <gba/memory/memory.hpp>
+  #include <gba/interface/interface.hpp>
+  #include <gba/scheduler/scheduler.hpp>
+  #include <gba/system/system.hpp>
+  #include <gba/cartridge/cartridge.hpp>
   #include <gba/cpu/cpu.hpp>
   #include <gba/ppu/ppu.hpp>
   #include <gba/apu/apu.hpp>
   #include <gba/video/video.hpp>
-
-  #include <gba/scheduler/scheduler-inline.hpp>
 }
 
 #endif

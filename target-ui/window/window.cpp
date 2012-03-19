@@ -45,6 +45,7 @@ void WindowManager::saveGeometry() {
   config.save(application->path("geometry.cfg"));
 }
 
+//phoenix can destruct windows that are hidden faster
 void WindowManager::hideAll() {
   for(auto &window : windowList) {
     window.window->setVisible(false);

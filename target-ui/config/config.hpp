@@ -33,7 +33,7 @@ struct Config : public configuration {
     unsigned frequency;
     unsigned frequencyNES;
     unsigned frequencySNES;
-    unsigned frequencyGameBoy;
+    unsigned frequencyGB;
     unsigned frequencyGBA;
   } audio;
 

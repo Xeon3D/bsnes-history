@@ -1,7 +1,7 @@
-#include <gameboy/gameboy.hpp>
+#include <gb/gb.hpp>
 
 #define VIDEO_CPP
-namespace GameBoy {
+namespace GB {
 
 Video video;
 
@@ -65,7 +65,7 @@ void Video::generate(Format format) {
 }
 
 Video::Video() {
-  palette = new unsigned[1 << 15];
+  palette = new unsigned[1 << 15]();
 }
 
 Video::~Video() {

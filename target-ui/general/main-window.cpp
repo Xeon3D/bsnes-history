@@ -62,6 +62,10 @@ MainWindow::MainWindow() {
     gameBoyPower.setText("&Power Cycle");
     gameBoyCartridgeUnload.setText("&Unload Cartridge");
 
+  gameBoyAdvanceMenu.setText("&Game Boy Advance");
+    gameBoyAdvancePower.setText("&Power Cycle");
+    gameBoyAdvanceCartridgeUnload.setText("&Unload Cartridge");
+
   settingsMenu.setText("S&ettings");
     settingsVideoFilter.setText("Video &Filter");
       settingsVideoFilterNone.setText("None");
@@ -140,6 +144,11 @@ MainWindow::MainWindow() {
     gameBoyMenu.append(gameBoySeparator);
     gameBoyMenu.append(gameBoyCartridgeUnload);
 
+  append(gameBoyAdvanceMenu);
+    gameBoyAdvanceMenu.append(gameBoyAdvancePower);
+    gameBoyAdvanceMenu.append(gameBoyAdvanceSeparator);
+    gameBoyAdvanceMenu.append(gameBoyAdvanceCartridgeUnload);
+
   append(settingsMenu);
     settingsMenu.append(settingsVideoFilter);
       settingsVideoFilter.append(settingsVideoFilterNone);
@@ -207,13 +216,13 @@ MainWindow::MainWindow() {
 
   cartridgeLoadGameBoy.onActivate = [&] {
     fileBrowser->open("Load Cartridge - Game Boy", FileBrowser::Mode::GameBoy, [](string filename) {
-      interface->gameBoy.loadCartridge(GameBoy::System::Revision::GameBoy, filename);
+      interface->gb.loadCartridge(GB::System::Revision::GameBoy, filename);
     });
   };
 
   cartridgeLoadGameBoyColor.onActivate = [&] {
     fileBrowser->open("Load Cartridge - Game Boy Color", FileBrowser::Mode::GameBoyColor, [](string filename) {
-      interface->gameBoy.loadCartridge(GameBoy::System::Revision::GameBoyColor, filename);
+      interface->gb.loadCartridge(GB::System::Revision::GameBoyColor, filename);
     });
   };
 
@@ -261,6 +270,9 @@ MainWindow::MainWindow() {
 
   gameBoyPower.onActivate = { &Interface::power, interface };
   gameBoyCartridgeUnload.onActivate = { &Interface::unloadCartridge, interface };
+
+  gameBoyAdvancePower.onActivate = { &Interface::power, interface };
+  gameBoyAdvanceCartridgeUnload.onActivate = { &Interface::unloadCartridge, interface };
 
   settingsVideoFilterNone.onActivate = [&] {
     config->video.filter = "None";

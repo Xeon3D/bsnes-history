@@ -41,6 +41,11 @@ struct MainWindow : Window {
     Separator gameBoySeparator;
     Item gameBoyCartridgeUnload;
 
+  Menu gameBoyAdvanceMenu;
+    Item gameBoyAdvancePower;
+    Separator gameBoyAdvanceSeparator;
+    Item gameBoyAdvanceCartridgeUnload;
+
   Menu settingsMenu;
     Menu settingsVideoFilter;
       RadioItem settingsVideoFilterNone;

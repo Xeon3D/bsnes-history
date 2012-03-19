@@ -1,8 +1,4 @@
-struct ARM7TDMI {
+struct ARM {
   #include "registers.hpp"
-  GPR r[31];
-  PSR cpsr;
-  PSR spsr[5];
-
   void power();
 };
