@@ -8,34 +8,40 @@ struct Interface {
     string name;
     unsigned width;
     unsigned height;
+    double aspectRatio;
     unsigned frequency;
-    unsigned ports;
     bool resettable;
+
+    struct Media {
+      string name;
+      string filter;
+    };
+    vector<Media> media;
   } information;
 
   struct Firmware {
+    string displayname;
     string name;
     unsigned id;
   };
   vector<Firmware> firmware;
 
-  struct MediaObject {
+  struct Media {
     string displayname;
+    string path;
     string name;
     string filter;
     unsigned id;
   };
 
-  struct Media : MediaObject {
-    vector<MediaObject> slot;
+  struct Schema : Media {
+    vector<Media> slot;
   };
-  vector<Media> media;
+  vector<Schema> schema;
 
   struct Memory {
-    string name;
     unsigned id;
-    uint8_t *data;
-    unsigned size;
+    string name;
   };
   vector<Memory> memory;
 
@@ -47,6 +53,7 @@ struct Interface {
       unsigned id;
       struct Input {
         string name;
+        unsigned type;  //0 = digital, 1 = analog
         unsigned id;
         unsigned guid;
       };
@@ -62,6 +69,7 @@ struct Interface {
     function<void (const uint32_t*, unsigned, unsigned, unsigned)> videoRefresh;
     function<void (int16_t, int16_t)> audioSample;
     function<int16_t (unsigned, unsigned, unsigned)> inputPoll;
+    function<void (Media)> mediaRequest;
   } callback;
 
   //audio/visual bindings (provided by user interface)
@@ -83,9 +91,14 @@ struct Interface {
     return 0;
   }
 
-  //cartridge interface
+  virtual void mediaRequest(Media media) {
+    if(callback.mediaRequest) return callback.mediaRequest(media);
+  }
+
+  //media interface
   virtual bool loaded() { return false; }
   virtual void load(unsigned id, const stream &memory, const string &markup = "") {}
+  virtual void save(unsigned id, const stream &memory) {}
   virtual void unload() {}
 
   //system interface

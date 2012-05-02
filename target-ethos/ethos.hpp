@@ -3,9 +3,11 @@
 #include <nall/platform.hpp>
 #include <nall/config.hpp>
 #include <nall/directory.hpp>
+#include <nall/dsp.hpp>
 #include <nall/map.hpp>
 #include <nall/stream/file.hpp>
 #include <nall/stream/memory.hpp>
+#include <nall/stream/mmap.hpp>
 #include <nall/stream/vector.hpp>
 using namespace nall;
 
@@ -15,6 +17,7 @@ using namespace phoenix;
 #include <ruby/ruby.hpp>
 using namespace ruby;
 
+#include "configuration/configuration.hpp"
 #include "interface/interface.hpp"
 #include "utility/utility.hpp"
 #include "input/input.hpp"
@@ -48,3 +51,4 @@ struct Application {
 };
 
 extern Application *application;
+extern DSP dspaudio;

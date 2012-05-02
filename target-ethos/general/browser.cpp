@@ -1,6 +1,7 @@
 Browser *browser = nullptr;
 
 Browser::Browser() {
+  bootstrap();
   setGeometry({128, 128, 640, 400});
 
   layout.setMargin(5);
@@ -40,44 +41,124 @@ Browser::Browser() {
 
   fileList.onChange = {&Browser::synchronize, this};
   fileList.onActivate = openButton.onActivate = {&Browser::fileListActivate, this};
+  onClose = [&] { dialogActive = false; };
 
   synchronize();
 }
 
-void Browser::open(Emulator::Interface::Media &media, function<void (string)> callback) {
-  this->media = media;
-  this->callback = callback;
-
-  setTitle({"Load ", media.displayname});
-  setPath("/media/sdb1/root/cartridges/Game Boy Advance/");
-
-  filterLabel.setText({"Files of type: ", media.filter});
-
-  setVisible();
-}
-
 void Browser::synchronize() {
   openButton.setEnabled(fileList.selected());
+  if(fileList.selected()) {
+    for(auto &folder : folderList) {
+      if(folder.filter == filter) {
+        folder.selection = fileList.selection();
+      }
+    }
+  }
 }
 
-void Browser::setPath(const string &path) {
+void Browser::saveConfiguration() {
+  config.save(application->path("paths.cfg"));
+}
+
+void Browser::bootstrap() {
+  for(auto &emulator : application->emulator) {
+    for(auto &media : emulator->information.media) {
+      bool found = false;
+      for(auto &folder : folderList) {
+        if(folder.filter == filter) {
+          found = true;
+          break;
+        }
+      }
+      if(found == true) continue;
+
+      Folder folder;
+      folder.filter = media.filter;
+      folder.path = application->basepath;
+      folder.selection = 0;
+      folderList.append(folder);
+    }
+  }
+
+  for(auto &folder : folderList) {
+    config.append(folder.path, folder.filter);
+    config.append(folder.selection, string{folder.filter, "::selection"});
+  }
+
+  config.load(application->path("paths.cfg"));
+  config.save(application->path("paths.cfg"));
+}
+
+string Browser::select(const string &title, const string &filter) {
+  this->filter = filter;
+
+  string path;
+  unsigned selection = 0;
+  for(auto &folder : folderList) {
+    if(folder.filter == filter) {
+      path = folder.path;
+      selection = folder.selection;
+      break;
+    }
+  }
+  if(path.empty()) path = application->basepath;
+  setPath(path, selection);
+
+  filterLabel.setText({"Files of type: ", filter});
+
+  setTitle(title);
+  setModal();
+  setVisible();
+  fileList.setFocused();
+  dialogActive = true;
+  outputFilename = "";
+  while(dialogActive == true) {
+    OS::processEvents();
+  }
+
+  return outputFilename;
+}
+
+void Browser::setPath(const string &path, unsigned selection) {
+  //save path for next browser selection
+  for(auto &folder : folderList) {
+    if(folder.filter == filter) folder.path = path;
+  }
+
   this->path = path;
   pathEdit.setText(path);
 
   fileList.reset();
   filenameList.reset();
 
-  lstring contents = directory::contents(path);
+  lstring contents = directory::folders(path);
+
   for(auto &filename : contents) {
-    if(filename.endswith("/")) {
+    string filter = {this->filter, "/"};
+    if(!filename.wildcard(R"(*.??/)") && !filename.wildcard(R"(*.???/)")) {
+      string name = filename;
+      name.rtrim<1>("/");
+      name = {"[ ", name, " ]"};
       filenameList.append(filename);
-    } else if(filename.wildcard(media.filter)) {
-      filenameList.append(filename);
+      fileList.append(name);
     }
   }
 
-  for(auto &filename : filenameList) fileList.append(filename);
-  fileList.setSelection(0);
+  for(auto &filename : contents) {
+    string filter = {this->filter, "/"};
+    if(filename.wildcard(R"(*.??/)") || filename.wildcard(R"(*.???/)")) {
+      if(filename.wildcard(filter)) {
+        string name = filename;
+        filter.ltrim<1>("*");
+        name.rtrim<1>(filter);
+        filenameList.append(filename);
+        fileList.append(name);
+      }
+    }
+  }
+
+  fileList.setSelection(selection);
   fileList.setFocused();
   synchronize();
 }
@@ -85,22 +166,10 @@ void Browser::setPath(const string &path) {
 void Browser::fileListActivate() {
   unsigned selection = fileList.selection();
   string filename = filenameList[selection];
-  if(filename.endswith("/")) {
-    if(loadFolder({path, filename})) return;
-    return setPath({path, filename});
-  }
-  loadFile({path, filename});
-}
+  string filter = {this->filter, "/"};
+  if(filename.wildcard(filter) == false) return setPath({path, filename});
 
-bool Browser::loadFolder(const string &path) {
-  string requested = path;
-  requested.rtrim<1>("/");
-  if(requested.wildcard(media.filter) == false) return false;
-  loadFile(path);
-  return true;
-}
-
-void Browser::loadFile(const string &filename) {
   setVisible(false);
-  if(callback) callback(filename);
+  dialogActive = false;
+  outputFilename = {path, filename};
 }

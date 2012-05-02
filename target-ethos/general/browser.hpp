@@ -9,20 +9,30 @@ struct Browser : Window {
   Label filterLabel;
   Button openButton;
 
-  void open(Emulator::Interface::Media &media, function<void (string)> callback);
+  string select(const string &title, const string &filter);
+  void saveConfiguration();
+  void synchronize();
+  void bootstrap();
   Browser();
 
-public:
-  Emulator::Interface::Media media;
-  function<void (string)> callback;
+private:
+  configuration config;
+  struct Folder {
+    string filter;
+    string path;
+    unsigned selection;
+  };
+  vector<Folder> folderList;
+
+  bool dialogActive;
+  string outputFilename;
+
+  string filter;
   string path;
   lstring filenameList;
 
-  void synchronize();
-  void setPath(const string &path);
+  void setPath(const string &path, unsigned selection = 0);
   void fileListActivate();
-  bool loadFolder(const string &path);
-  void loadFile(const string &filename);
 };
 
 extern Browser *browser;

@@ -9,13 +9,13 @@ struct SettingsLayout : HorizontalLayout {
 #include "video.hpp"
 #include "audio.hpp"
 #include "input.hpp"
+#include "hotkey.hpp"
 
 struct Settings : Window {
   HorizontalLayout layout;
   ListView panelList;
 
   void panelChanged();
-
   Settings();
 };
 
