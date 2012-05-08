@@ -15,6 +15,9 @@ struct ID {
 };
 
 struct Interface : Emulator::Interface {
+  double videoFrequency();
+  double audioFrequency();
+
   bool loaded();
   string sha256();
   void load(unsigned id, const stream &stream, const string &markup = "");
@@ -33,6 +36,9 @@ struct Interface : Emulator::Interface {
   void updatePalette();
 
   Interface();
+
+private:
+  vector<Device> device;
 };
 
 extern Interface *interface;

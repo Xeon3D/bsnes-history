@@ -4,6 +4,14 @@ namespace GameBoy {
 
 Interface *interface = nullptr;
 
+double Interface::videoFrequency() {
+  return 4194304.0 / (154.0 * 456.0);
+}
+
+double Interface::audioFrequency() {
+  return 4194304.0;
+}
+
 bool Interface::loaded() {
   return cartridge.loaded();
 }
@@ -119,7 +127,7 @@ Interface::Interface() {
     this->device.append(device);
   }
 
-  port.append({ID::Device, "Device", {device[0]}});
+  port.append({0, "Device", {device[0]}});
 }
 
 }

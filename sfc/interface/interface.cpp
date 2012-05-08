@@ -4,6 +4,17 @@ namespace SuperFamicom {
 
 Interface *interface = nullptr;
 
+double Interface::videoFrequency() {
+  switch(system.region()) { default:
+  case System::Region::NTSC: return system.cpu_frequency() / (262.0 * 1364.0 - 4.0);
+  case System::Region::PAL:  return system.cpu_frequency() / (312.0 * 1364.0);
+  }
+}
+
+double Interface::audioFrequency() {
+  return system.apu_frequency() / 768.0;
+}
+
 bool Interface::loaded() {
   return cartridge.loaded();
 }
@@ -68,8 +79,6 @@ void Interface::load(unsigned id, const stream &stream, const string &markup) {
   if(id == ID::ROM) {
     cartridge.load(markup, stream);
     system.power();
-    input.connect(0, Input::Device::Joypad);
-    input.connect(1, Input::Device::Joypad);
   }
 
   if(id == ID::SuperGameBoyROM) {
@@ -236,12 +245,7 @@ Interface::Interface() {
   media.append({ID::ROM, "Sufami Turbo",     "sfc", "program.rom", "st" });
 
   {
-    Device device{0, ID::Port1 | ID::Port2, "None"};
-    this->device.append(device);
-  }
-
-  {
-    Device device{1, ID::Port1 | ID::Port2, "Controller"};
+    Device device{0, ID::Port1 | ID::Port2, "Controller"};
     device.input.append({ 0, 0, "B"     });
     device.input.append({ 1, 0, "Y"     });
     device.input.append({ 2, 0, "Select"});
@@ -259,7 +263,7 @@ Interface::Interface() {
   }
 
   {
-    Device device{2, ID::Port1 | ID::Port2, "Multitap"};
+    Device device{1, ID::Port1 | ID::Port2, "Multitap"};
     for(unsigned p = 1, n = 0; p <= 4; p++, n += 12) {
       device.input.append({n +  0, 0, {"Port ", p, " - ", "B"     }});
       device.input.append({n +  1, 0, {"Port ", p, " - ", "Y"     }});
@@ -280,7 +284,7 @@ Interface::Interface() {
   }
 
   {
-    Device device{3, ID::Port1 | ID::Port2, "Mouse"};
+    Device device{2, ID::Port1 | ID::Port2, "Mouse"};
     device.input.append({0, 1, "X-axis"});
     device.input.append({1, 1, "Y-axis"});
     device.input.append({2, 0, "Left"  });
@@ -290,7 +294,7 @@ Interface::Interface() {
   }
 
   {
-    Device device{4, ID::Port2, "Super Scope"};
+    Device device{3, ID::Port2, "Super Scope"};
     device.input.append({0, 1, "X-axis" });
     device.input.append({1, 1, "Y-axis" });
     device.input.append({2, 0, "Trigger"});
@@ -302,7 +306,7 @@ Interface::Interface() {
   }
 
   {
-    Device device{5, ID::Port2, "Justifier"};
+    Device device{4, ID::Port2, "Justifier"};
     device.input.append({0, 1, "X-axis" });
     device.input.append({1, 1, "Y-axis" });
     device.input.append({2, 0, "Trigger"});
@@ -312,7 +316,7 @@ Interface::Interface() {
   }
 
   {
-    Device device{6, ID::Port2, "Justifiers"};
+    Device device{5, ID::Port2, "Justifiers"};
     device.input.append({0, 1, "Port 1 - X-axis" });
     device.input.append({1, 1, "Port 1 - Y-axis" });
     device.input.append({2, 0, "Port 1 - Trigger"});
@@ -327,16 +331,21 @@ Interface::Interface() {
   }
 
   {
-    Device device{7, ID::Port1, "Serial USART"};
+    Device device{6, ID::Port1, "Serial USART"};
     this->device.append(device);
   }
 
-  port.append({ID::Port1, "Port 1"});
-  port.append({ID::Port2, "Port 2"});
+  {
+    Device device{7, ID::Port1 | ID::Port2, "None"};
+    this->device.append(device);
+  }
+
+  port.append({0, "Port 1"});
+  port.append({1, "Port 2"});
 
   for(auto &device : this->device) {
     for(auto &port : this->port) {
-      if(device.portmask & port.id) {
+      if(device.portmask & (1 << port.id)) {
         port.device.append(device);
       }
     }

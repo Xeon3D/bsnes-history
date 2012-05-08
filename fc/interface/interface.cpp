@@ -4,6 +4,14 @@ namespace Famicom {
 
 Interface *interface = nullptr;
 
+double Interface::videoFrequency() {
+  return 21477272.0 / (262.0 * 1364.0 - 4.0);
+}
+
+double Interface::audioFrequency() {
+  return 21477272.0 / 12.0;
+}
+
 bool Interface::loaded() {
   return cartridge.loaded();
 }
@@ -99,12 +107,12 @@ Interface::Interface() {
     this->device.append(device);
   }
 
-  port.append({ID::Port1, "Port 1"});
-  port.append({ID::Port2, "Port 2"});
+  port.append({0, "Port 1"});
+  port.append({1, "Port 2"});
 
   for(auto &device : this->device) {
     for(auto &port : this->port) {
-      if(device.portmask & port.id) {
+      if(device.portmask & (1 << port.id)) {
         port.device.append(device);
       }
     }

@@ -64,9 +64,7 @@ void System::runthreadtosave() {
 void System::init() {
   assert(interface != 0);
 
-  #if defined(GAMEBOY)
   icd2.init();
-  #endif
   nss.init();
   superfx.init();
   sa1.init();
@@ -94,6 +92,15 @@ void System::term() {
 }
 
 void System::load() {
+  region = config.region;
+  expansion = config.expansion_port;
+  if(region == Region::Autodetect) {
+    region = (cartridge.region() == Cartridge::Region::NTSC ? Region::NTSC : Region::PAL);
+  }
+
+  cpu_frequency = region() == Region::NTSC ? config.cpu.ntsc_frequency : config.cpu.pal_frequency;
+  apu_frequency = region() == Region::NTSC ? config.smp.ntsc_frequency : config.smp.pal_frequency;
+
   audio.coprocessor_enable(false);
 
   bus.map_reset();
@@ -103,9 +110,7 @@ void System::load() {
   ppu.enable();
 
   if(expansion() == ExpansionPortDevice::BSX) bsxsatellaview.load();
-  #if defined(GAMEBOY)
   if(cartridge.has_gb_slot()) icd2.load();
-  #endif
   if(cartridge.has_bs_cart()) bsxcartridge.load();
   if(cartridge.has_bs_slot()) bsxflash.load();
   if(cartridge.has_st_slots()) sufamiturbo.load();
@@ -128,9 +133,7 @@ void System::load() {
 
 void System::unload() {
   if(expansion() == ExpansionPortDevice::BSX) bsxsatellaview.unload();
-  #if defined(GAMEBOY)
   if(cartridge.has_gb_slot()) icd2.unload();
-  #endif
   if(cartridge.has_bs_cart()) bsxcartridge.unload();
   if(cartridge.has_bs_slot()) bsxflash.unload();
   if(cartridge.has_st_slots()) sufamiturbo.unload();
@@ -151,24 +154,13 @@ void System::unload() {
 void System::power() {
   random.seed((unsigned)time(0));
 
-  region = config.region;
-  expansion = config.expansion_port;
-  if(region == Region::Autodetect) {
-    region = (cartridge.region() == Cartridge::Region::NTSC ? Region::NTSC : Region::PAL);
-  }
-
-  cpu_frequency = region() == Region::NTSC ? config.cpu.ntsc_frequency : config.cpu.pal_frequency;
-  apu_frequency = region() == Region::NTSC ? config.smp.ntsc_frequency : config.smp.pal_frequency;
-
   cpu.power();
   smp.power();
   dsp.power();
   ppu.power();
 
   if(expansion() == ExpansionPortDevice::BSX) bsxsatellaview.power();
-  #if defined(GAMEBOY)
   if(cartridge.has_gb_slot()) icd2.power();
-  #endif
   if(cartridge.has_bs_cart()) bsxcartridge.power();
   if(cartridge.has_bs_slot()) bsxflash.power();
   if(cartridge.has_nss_dip()) nss.power();
@@ -194,9 +186,7 @@ void System::reset() {
   ppu.reset();
 
   if(expansion() == ExpansionPortDevice::BSX) bsxsatellaview.reset();
-  #if defined(GAMEBOY)
   if(cartridge.has_gb_slot()) icd2.reset();
-  #endif
   if(cartridge.has_bs_cart()) bsxcartridge.reset();
   if(cartridge.has_bs_slot()) bsxflash.reset();
   if(cartridge.has_nss_dip()) nss.reset();
@@ -212,9 +202,7 @@ void System::reset() {
   if(cartridge.has_msu1()) msu1.reset();
   if(cartridge.has_link()) link.reset();
 
-  #if defined(GAMEBOY)
   if(cartridge.has_gb_slot()) cpu.coprocessors.append(&icd2);
-  #endif
   if(cartridge.has_superfx()) cpu.coprocessors.append(&superfx);
   if(cartridge.has_sa1()) cpu.coprocessors.append(&sa1);
   if(cartridge.has_necdsp()) cpu.coprocessors.append(&necdsp);
