@@ -699,13 +699,20 @@ void SPC7110::mcurom_write(unsigned addr, uint8 data) {
 //===============
 
 uint8 SPC7110::mcuram_read(unsigned addr) {
-  addr = bus.mirror(addr, cartridge.ram.size());
-  return cartridge.ram.read(addr);
+  //$00-3f|80-bf:6000-7fff
+  if(r4830 & 0x80) {
+    unsigned bank = (addr >> 16) & 0x3f;
+    addr = bus.mirror(bank * 0x2000 + (addr & 0x1fff), cartridge.ram.size());
+    return cartridge.ram.read(addr);
+  }
+  return 0x00;
 }
 
 void SPC7110::mcuram_write(unsigned addr, uint8 data) {
+  //$00-3f|80-bf:6000-7fff
   if(r4830 & 0x80) {
-    addr = bus.mirror(addr, cartridge.ram.size());
+    unsigned bank = (addr >> 16) & 0x3f;
+    addr = bus.mirror(bank * 0x2000 + (addr & 0x1fff), cartridge.ram.size());
     cartridge.ram.write(addr, data);
   }
 }
