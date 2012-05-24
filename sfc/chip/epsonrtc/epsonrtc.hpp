@@ -1,6 +1,6 @@
 //Epson RTC-4513 Real-Time Clock
 
-struct RTC4513 : Coprocessor {
+struct EpsonRTC : Coprocessor {
   static void Enter();
   void enter();
 
@@ -9,13 +9,14 @@ struct RTC4513 : Coprocessor {
   void unload();
   void power();
   void reset();
+  void sync();
 
   uint8 read(unsigned addr);
   void write(unsigned addr, uint8 data);
 
   void serialize(serializer&);
 
-  uint15 clocks;
+  uint21 clocks;
   unsigned seconds;
 
   uint2 chipselect;
@@ -23,7 +24,8 @@ struct RTC4513 : Coprocessor {
   uint4 mdr;
   uint4 offset;
   unsigned wait;
-  bool ready;
+  uint1 ready;
+  uint1 holdtick;
 
   uint4 secondlo;
   uint3 secondhi;
@@ -31,28 +33,24 @@ struct RTC4513 : Coprocessor {
 
   uint4 minutelo;
   uint3 minutehi;
-  uint1 minutecarry;
+  uint1 resync;
 
   uint4 hourlo;
   uint2 hourhi;
   uint1 meridian;
-  uint1 hourcarry;
 
   uint4 daylo;
   uint2 dayhi;
   uint1 dayram;
-  uint1 daycarry;
 
   uint4 monthlo;
   uint1 monthhi;
   uint2 monthram;
-  uint1 monthcarry;
 
   uint4 yearlo;
   uint4 yearhi;
 
   uint3 weekday;
-  uint1 weekdaycarry;
 
   uint1 hold;
   uint1 calendar;
@@ -69,20 +67,6 @@ struct RTC4513 : Coprocessor {
   uint1 test;
 
   //memory.cpp
-  unsigned second();
-  unsigned minute();
-  unsigned hour();
-  unsigned day();
-  unsigned month();
-  unsigned year();
-
-  void second(unsigned);
-  void minute(unsigned);
-  void hour(unsigned);
-  void day(unsigned);
-  void month(unsigned);
-  void year(unsigned);
-
   void rtc_reset();
   uint4 rtc_read(uint4 addr);
   void rtc_write(uint4 addr, uint4 data);
@@ -93,7 +77,9 @@ struct RTC4513 : Coprocessor {
   //time.cpp
   void irq(uint2 period);
   void duty();
+  void round_seconds();
   void tick();
+
   void tick_second();
   void tick_minute();
   void tick_hour();
@@ -102,4 +88,4 @@ struct RTC4513 : Coprocessor {
   void tick_year();
 };
 
-extern RTC4513 rtc4513;
+extern EpsonRTC epsonrtc;

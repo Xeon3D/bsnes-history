@@ -5,23 +5,28 @@ namespace SuperFamicom {
 struct ID {
   enum : unsigned {
     IPLROM,
+
+    ROM,
+    RAM,
+
+    ArmDSP,
+    HitachiDSP,
     Nec7725DSP,
     Nec96050DSP,
-    HitachiDSP,
-    ArmDSP,
-    ROM,
-    SuperGameBoyROM,
-    BsxFlashROM,
-    SufamiTurboSlotAROM,
-    SufamiTurboSlotBROM,
-    RAM,
     NecDSPRAM,
-    RTC,
-    RTC4513,
+
+    EpsonRTC,
+    SharpRTC,
+
+    SuperGameBoyROM,
+    SuperGameBoyRAM,
+
+    BsxFlashROM,
     BsxRAM,
     BsxPSRAM,
-    SuperGameBoyRAM,
-    SuperGameBoyRTC,
+
+    SufamiTurboSlotAROM,
+    SufamiTurboSlotBROM,
     SufamiTurboSlotARAM,
     SufamiTurboSlotBRAM,
   };
@@ -47,6 +52,9 @@ struct Interface : Emulator::Interface {
   void power();
   void reset();
   void run();
+
+  bool rtc();
+  void rtcsync();
 
   serializer serialize();
   bool unserialize(serializer&);
