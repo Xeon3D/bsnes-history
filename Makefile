@@ -9,7 +9,10 @@ profile := accuracy
 target := ethos
 # target := loki
 
-# options += debugger
+ifeq ($(target),loki)
+  options += debugger
+endif
+
 # arch := x86
 # console := true
 

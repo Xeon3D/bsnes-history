@@ -4,11 +4,12 @@ Terminal* terminal = nullptr;
 Terminal::Terminal() {
   terminal = this;
 
+  setTitle({"loki v", Emulator::Version});
   setWindowGeometry({0, 480 + frameMargin().height, 800, 480});
 
   console.setFont(Font::monospace(8));
-  print("loki v", Emulator::Version, "\n\n");
-  print("$ ");
+  console.setPrompt("$ ");
+  echo("loki v", Emulator::Version, "\n\n");
 
   layout.append(console, {~0, ~0});
   append(layout);
@@ -17,26 +18,57 @@ Terminal::Terminal() {
   console.onActivate = {&Terminal::command, this};
 }
 
-void Terminal::command(string s) {
-  if(s.empty()) {
-  } else if(s == "quit" || s == "exit") {
-    Application::quit();
-  } else if(s == "clear" || s == "reset") {
-    reset();
-  } else if(s == "r") {
-    program->pause = false;
-  } else if(s == "p") {
-    program->pause = true;
-  } else {
-    print("unrecognized command\n");
+void Terminal::command(string t) {
+  lstring args = t.qsplit(" ");
+  string s = args.takeFirst();
+  unsigned argc = args.size();
+
+  if(s.empty()) return;
+
+  if(s.beginsWith("settings.")) return settings->command(s, args);
+
+  if(s == "break") {
+    debugger->mode = Debugger::Mode::Break;
+    return;
   }
-  print("$ ");
+
+  if(s == "clear") {
+    reset();
+    return;
+  }
+
+  if(s == "hex" && argc >= 1 && argc <= 2) {
+    debugger->echoHex(hex(args[0]), argc == 2 ? integer(args[1]) : 256);
+    return;
+  }
+
+  if(s == "quit") {
+    Application::quit();
+    return;
+  }
+
+  if(s == "run") {
+    debugger->mode = Debugger::Mode::Run;
+    return;
+  }
+
+  if(s == "step" && argc <= 1) {
+    if(debugger->mode != Debugger::Mode::Break) {
+      echo("Error: must break before stepping\n");
+      return;
+    }
+    debugger->mode = Debugger::Mode::Step;
+    debugger->stepDuration = (argc == 1 ? decimal(args[0]) : 1);
+    return;
+  }
+
+  echo("Error: unrecognized command: ", s, "\n");
 }
 
 void Terminal::reset() {
   console.reset();
 }
 
-template<typename... Args> void Terminal::print(Args&&... args) {
-  console.print(std::forward<Args>(args)...);
+void Terminal::print(const string& text) {
+  console.print(text);
 }
