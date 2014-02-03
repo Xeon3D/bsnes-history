@@ -62,10 +62,12 @@ Program::Program(string pathname) {
   presentation->showSplash();
 
   interface->load(pathname);
+  debugger->load();
 
   Application::main = {&Program::main, this};
   Application::run();
 
+  debugger->unload();
   interface->unload();
   settings->save();
 }

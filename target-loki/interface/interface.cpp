@@ -18,9 +18,10 @@ bool Interface::load(string pathname) {
     if(media.bootable == false) continue;
     if(type != media.type) continue;
 
+    this->pathname = pathname.append("/");
     pathnames.reset();
     pathnames(0) = program->path({media.name, ".sys/"});
-    pathnames(media.id) = pathname.append("/");
+    pathnames(media.id) = pathname;
     echo("Loaded ", pathname, "\n");
 
     emulator->load(media.id);
