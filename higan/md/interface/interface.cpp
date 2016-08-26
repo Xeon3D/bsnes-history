@@ -10,10 +10,7 @@ Interface::Interface() {
 
   information.manufacturer = "Sega";
   information.name         = "Mega Drive";
-  information.width        = 320;  //1280
-  information.height       = 240;  // 480
   information.overscan     = true;
-  information.aspectRatio  = 4.0 / 3.0;
   information.resettable   = true;
 
   information.capability.states = false;
@@ -23,6 +20,13 @@ Interface::Interface() {
 
   Port controllerPort1{ID::Port::Controller1, "Controller Port 1"};
   Port controllerPort2{ID::Port::Controller2, "Controller Port 2"};
+  Port extensionPort{ID::Port::Extension, "Extension Port"};
+
+  { Device device{ID::Device::None, "None"};
+    controllerPort1.devices.append(device);
+    controllerPort2.devices.append(device);
+    extensionPort.devices.append(device);
+  }
 
   { Device device{ID::Device::Gamepad, "Gamepad"};
     device.inputs.append({0, "Up"   });
@@ -42,6 +46,7 @@ Interface::Interface() {
 
   ports.append(move(controllerPort1));
   ports.append(move(controllerPort2));
+  ports.append(move(extensionPort));
 }
 
 auto Interface::manifest() -> string {
@@ -50,6 +55,17 @@ auto Interface::manifest() -> string {
 
 auto Interface::title() -> string {
   return cartridge.title();
+}
+
+auto Interface::videoSize() -> VideoSize {
+  return {1280, 480};
+}
+
+auto Interface::videoSize(uint width, uint height, bool arc) -> VideoSize {
+  uint w = 320;
+  uint h = 240;
+  uint m = min(width / w, height / h);
+  return {w * m, h * m};
 }
 
 auto Interface::videoFrequency() -> double {
@@ -61,9 +77,9 @@ auto Interface::videoColors() -> uint32 {
 }
 
 auto Interface::videoColor(uint32 color) -> uint64 {
-  uint B = color.bits(0,2);
+  uint R = color.bits(0,2);
   uint G = color.bits(3,5);
-  uint R = color.bits(6,8);
+  uint B = color.bits(6,8);
 
   uint64 r = image::normalize(R, 3, 16);
   uint64 g = image::normalize(G, 3, 16);
@@ -90,6 +106,10 @@ auto Interface::save() -> void {
 
 auto Interface::unload() -> void {
   system.unload();
+}
+
+auto Interface::connect(uint port, uint device) -> void {
+  MegaDrive::peripherals.connect(port, device);
 }
 
 auto Interface::power() -> void {

@@ -9,10 +9,12 @@ auto YM2612::Enter() -> void {
 }
 
 auto YM2612::main() -> void {
-  step(frequency);
+  step(1);
 }
 
 auto YM2612::step(uint clocks) -> void {
+  Thread::step(clocks);
+  synchronize(cpu);
 }
 
 auto YM2612::power() -> void {

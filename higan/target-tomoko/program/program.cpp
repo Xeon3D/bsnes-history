@@ -1,6 +1,7 @@
 #include "../tomoko.hpp"
 #include <fc/interface/interface.hpp>
 #include <sfc/interface/interface.hpp>
+#include <ms/interface/interface.hpp>
 #include <md/interface/interface.hpp>
 #include <gb/interface/interface.hpp>
 #include <gba/interface/interface.hpp>
@@ -17,6 +18,7 @@ Program::Program(string_vector args) {
 
   emulators.append(new Famicom::Interface);
   emulators.append(new SuperFamicom::Interface);
+  emulators.append(new MasterSystem::Interface);
   emulators.append(new MegaDrive::Interface);
   emulators.append(new GameBoy::Interface);
   emulators.append(new GameBoyAdvance::Interface);
@@ -31,7 +33,7 @@ Program::Program(string_vector args) {
   video->set(Video::Synchronize, settings["Video/Synchronize"].boolean());
   if(!video->init()) video = Video::create("None");
 
-  presentation->drawSplashScreen();
+  presentation->clearViewport();
 
   audio = Audio::create(settings["Audio/Driver"].text());
   audio->set(Audio::Device, settings["Audio/Device"].text());
@@ -49,6 +51,7 @@ Program::Program(string_vector args) {
   new SettingsManager;
   new CheatDatabase;
   new ToolsManager;
+  new AboutWindow;
 
   presentation->setFocused();
 
@@ -74,6 +77,7 @@ Program::Program(string_vector args) {
 auto Program::main() -> void {
   updateStatusText();
   inputManager->poll();
+  inputManager->pollHotkeys();
 
   if(!emulator || !emulator->loaded() || pause || (!presentation->focused() && settings["Input/FocusLoss/Pause"].boolean())) {
     audio->clear();
@@ -85,6 +89,7 @@ auto Program::main() -> void {
 }
 
 auto Program::quit() -> void {
+  hasQuit = true;
   unloadMedium();
   settings.quit();
   inputManager->quit();

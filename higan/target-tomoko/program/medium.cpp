@@ -44,12 +44,13 @@ auto Program::loadMedium(Emulator::Interface& interface, const Emulator::Interfa
 auto Program::unloadMedium() -> void {
   if(!emulator) return;
 
+  presentation->clearViewport();
   toolsManager->cheatEditor.saveCheats();
   emulator->unload();
   emulator = nullptr;
   mediumPaths.reset();
 
-  presentation->drawSplashScreen();
+  presentation->resizeViewport();
   presentation->setTitle({"higan v", Emulator::Version});
   presentation->systemMenu.setVisible(false);
   presentation->toolsMenu.setVisible(false);

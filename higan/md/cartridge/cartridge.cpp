@@ -70,13 +70,12 @@ auto Cartridge::power() -> void {
 auto Cartridge::reset() -> void {
 }
 
-auto Cartridge::read(bool word, uint24 addr) -> uint16 {
-  uint16 data = rom.data[addr & rom.mask];
-  if(!word) return data;
-  return data << 8 | rom.data[addr + 1 & rom.mask];
+auto Cartridge::read(uint24 addr) -> uint16 {
+  uint16 data = rom.data[addr + 0 & rom.mask] << 8;
+  return data | rom.data[addr + 1 & rom.mask] << 0;
 }
 
-auto Cartridge::write(bool word, uint24 addr, uint16 data) -> void {
+auto Cartridge::write(uint24 addr, uint16 data) -> void {
 }
 
 }

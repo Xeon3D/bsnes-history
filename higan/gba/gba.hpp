@@ -11,7 +11,6 @@
 
 namespace GameBoyAdvance {
   using File = Emulator::File;
-  using Thread = Emulator::Thread;
   using Scheduler = Emulator::Scheduler;
   extern Scheduler scheduler;
 
@@ -25,6 +24,21 @@ namespace GameBoyAdvance {
     Load          =  64,  //load operation
     Store         = 128,  //store operation
     Signed        = 256,  //sign extended
+  };
+
+  struct Thread : Emulator::Thread {
+    auto create(auto (*entrypoint)() -> void, double frequency) -> void {
+      Emulator::Thread::create(entrypoint, frequency);
+      scheduler.append(*this);
+    }
+
+    inline auto synchronize(Thread& thread) -> void {
+      if(clock() >= thread.clock()) scheduler.resume(thread);
+    }
+
+    inline auto step(uint clocks) -> void {
+      _clock += clocks;
+    }
   };
 
   #include <gba/memory/memory.hpp>

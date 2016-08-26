@@ -4,6 +4,7 @@
 #include <nall/vfs.hpp>
 using namespace nall;
 
+#include "types.hpp"
 #include <libco/libco.h>
 #include <audio/audio.hpp>
 #include <video/video.hpp>
@@ -11,13 +12,13 @@ using namespace nall;
 
 namespace Emulator {
   static const string Name    = "higan";
-  static const string Version = "100.11";
+  static const string Version = "101.13";
   static const string Author  = "byuu";
   static const string License = "GPLv3";
   static const string Website = "http://byuu.org/";
 
   //incremented only when serialization format changes
-  static const string SerializerVersion = "100";
+  static const string SerializerVersion = "101";
 
   namespace Constants {
     namespace Colorburst {

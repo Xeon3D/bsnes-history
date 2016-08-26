@@ -2,14 +2,12 @@
 
 namespace MegaDrive {
 
+#include "peripherals.cpp"
 System system;
 Scheduler scheduler;
 
 auto System::run() -> void {
-  if(scheduler.enter() == Scheduler::Event::Frame) {
-    static uint32 output[320 * 240] = {0};
-    Emulator::video.refresh(output, 320 * sizeof(uint32), 320, 240);
-  }
+  if(scheduler.enter() == Scheduler::Event::Frame) vdp.refresh();
 }
 
 auto System::load() -> bool {
@@ -28,6 +26,7 @@ auto System::save() -> void {
 }
 
 auto System::unload() -> void {
+  peripherals.unload();
   cartridge.unload();
 }
 
@@ -49,13 +48,16 @@ auto System::reset() -> void {
   Emulator::audio.reset();
   Emulator::audio.setInterface(interface);
 
+  scheduler.reset();
   cartridge.reset();
   cpu.reset();
   apu.reset();
   vdp.reset();
   psg.reset();
   ym2612.reset();
-  scheduler.reset(cpu.thread);
+  scheduler.primary(cpu);
+
+  peripherals.reset();
 }
 
 }
