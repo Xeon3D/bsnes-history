@@ -6,14 +6,143 @@ struct VDP : Thread {
   auto step(uint clocks) -> void;
   auto refresh() -> void;
 
-  auto in(uint8 addr) -> uint8;
-  auto out(uint8 addr, uint8 data) -> void;
+  auto vlines() -> uint;
+  auto vblank() -> bool;
 
   auto power() -> void;
   auto reset() -> void;
 
+  //io.cpp
+  auto vcounter() -> uint8;
+  auto hcounter() -> uint8;
+  auto data() -> uint8;
+  auto status() -> uint8;
+
+  auto data(uint8) -> void;
+  auto control(uint8) -> void;
+  auto registerWrite(uint4 addr, uint8 data) -> void;
+
+  //background.cpp
+  struct Background {
+    auto scanline() -> void;
+    auto run() -> void;
+
+    auto power() -> void;
+    auto reset() -> void;
+
+    struct State {
+      uint x;
+      uint y;
+    } state;
+
+    struct Output {
+      uint4 color;
+      uint1 palette;
+      uint1 priority;
+    } output;
+  } background;
+
+  //sprite.cpp
+  struct Sprite {
+    auto scanline() -> void;
+    auto run() -> void;
+
+    auto power() -> void;
+    auto reset() -> void;
+
+    struct Object {
+      uint8 x;
+      uint8 y;
+      uint8 pattern;
+    };
+
+    struct State {
+      uint x;
+      uint y;
+    } state;
+
+    struct Output {
+      uint4 color;
+    } output;
+
+    array<Object, 8> objects;
+  } sprite;
+
 private:
-  uint32 buffer[256 * 240];
+  uint32 buffer[256 * 262];
+  uint8 vram[0x4000];
+  uint8 cram[0x20];
+
+  struct IO {
+    uint vcounter;  //vertical counter
+    uint hcounter;  //horizontal counter
+    uint lcounter;  //line counter
+
+    //interrupt flags
+    bool intLine;
+    bool intFrame;
+
+    //status flags
+    bool spriteOverflow;
+    bool spriteCollision;
+    uint5 fifthSprite;
+
+    //latches
+    bool controlLatch;
+    uint16 controlData;
+    uint2 code;
+    uint14 address;
+
+    uint8 vramLatch;
+
+    //$00  mode control 1
+    bool externalSync;
+    bool extendedHeight;
+    bool mode4;
+    bool spriteShift;
+    bool lineInterrupts;
+    bool leftClip;
+    bool horizontalScrollLock;
+    bool verticalScrollLock;
+
+    //$01  mode control 2
+    bool spriteDouble;
+    bool spriteTile;
+    bool lines240;
+    bool lines224;
+    bool frameInterrupts;
+    bool displayEnable;
+
+    //$02  name table base address
+    uint1 nameTableMask;
+    uint3 nameTableAddress;
+
+    //$03  color table base address
+    uint8 colorTableAddress;
+
+    //$04  pattern table base address
+    uint8 patternTableAddress;
+
+    //$05  sprite attribute table base address
+    uint1 spriteAttributeTableMask;
+    uint6 spriteAttributeTableAddress;
+
+    //$06  sprite pattern table base address
+    uint2 spritePatternTableMask;
+    uint1 spritePatternTableAddress;
+
+    //$07  backdrop color
+    uint4 backdropColor;
+
+    //$08  horizontal scroll offset
+    uint8 hscroll;
+
+    //$09  vertical scroll offset
+    uint8 vscroll;
+
+    //$0a  line counter
+    uint8 lineCounter;
+  } io;
 };
 
 extern VDP vdp;

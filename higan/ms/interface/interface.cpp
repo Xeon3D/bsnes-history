@@ -22,6 +22,11 @@ Interface::Interface() {
   Port controllerPort1{ID::Port::Controller1, "Controller Port 1"};
   Port controllerPort2{ID::Port::Controller2, "Controller Port 2"};
 
+  { Device device{ID::Device::None, "None"};
+    controllerPort1.devices.append(device);
+    controllerPort2.devices.append(device);
+  }
+
   { Device device{ID::Device::Gamepad, "Gamepad"};
     device.inputs.append({0, "Up"});
     device.inputs.append({0, "Down"});
@@ -66,7 +71,15 @@ auto Interface::videoColors() -> uint32 {
 }
 
 auto Interface::videoColor(uint32 color) -> uint64 {
-  return 0;
+  uint2 B = color >> 4;
+  uint2 G = color >> 2;
+  uint2 R = color >> 0;
+
+  uint64 r = image::normalize(R, 2, 16);
+  uint64 g = image::normalize(G, 2, 16);
+  uint64 b = image::normalize(B, 2, 16);
+
+  return r << 32 | g << 16 | b << 0;
 }
 
 auto Interface::audioFrequency() -> double {
@@ -89,6 +102,10 @@ auto Interface::save() -> void {
 
 auto Interface::unload() -> void {
   system.unload();
+}
+
+auto Interface::connect(uint port, uint device) -> void {
+  MasterSystem::peripherals.connect(port, device);
 }
 
 auto Interface::power() -> void {
